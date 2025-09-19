@@ -29,6 +29,8 @@ struct ClosedTrade {
 struct BacktestResult {
     pub trades: Vec<ClosedTrade>,
     pub total_profit: f64,
+    pub symbol: String,
+    pub exchange: String,
 }
 /// Bollinger Bands Mean Reversion Strategy Backtest
 ///
@@ -45,17 +47,19 @@ struct BacktestResult {
 /// - tp: Take profit percentage (e.g., 0.04 = 4%)
 #[plugin_fn]
 pub fn run(fin_data: FinData) -> FnResult<BacktestResult> {
-    let candles = fin_data.get_candles("symbol_data")?;
+    let ticker = fin_data.get_ticker("symbol_data")?;
     let bb_period = fin_data.get_call_argument("period")?;
     let multiplier: f64 = fin_data.get_call_argument("multiplier")?;
     let sl: f64 = fin_data.get_call_argument("sl")?;
     let tp: f64 = fin_data.get_call_argument("tp")?;
 
     // Validate input parameters
-    if candles.len() < bb_period {
+    if ticker.candles.len() < bb_period {
         return Ok(BacktestResult {
             trades: vec![],
             total_profit: 0.0,
+            symbol: ticker.symbol.clone(),
+            exchange: ticker.exchange.clone(),
         });
     }
     let mut trades: Vec<ClosedTrade> = vec![];
@@ -65,7 +69,7 @@ pub fn run(fin_data: FinData) -> FnResult<BacktestResult> {
         BollingerBands::new(bb_period, multiplier).expect("Failed to create Bollinger Bands");
 
     // Initialize the Bollinger Bands with the first bb_period candles
-    let mut candles_iter = candles.iter();
+    let mut candles_iter = ticker.candles.iter();
     candles_iter.by_ref().take(bb_period).for_each(|candle| {
         bb.next(candle.close);
     });
@@ -128,7 +132,7 @@ pub fn run(fin_data: FinData) -> FnResult<BacktestResult> {
     if let Some(trade) = open_trade {
         trades.push(ClosedTrade {
             open_price: trade.open_price,
-            close_price: candles.last().expect("No candles").close,
+            close_price: ticker.candles.last().expect("No candles").close,
             amount: trade.amount,
             side: trade.side,
         });
@@ -143,5 +147,7 @@ pub fn run(fin_data: FinData) -> FnResult<BacktestResult> {
             })
             .sum(),
         trades,
+        symbol: ticker.symbol.clone(),
+        exchange: ticker.exchange.clone(),
     })
 }

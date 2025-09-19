@@ -6,28 +6,28 @@
         "type": "object",
         "properties": {
             "period": {
-                "type": "integer",
+                "type": ["integer","string"],
                 "description": "Number of periods for the moving average calculation (e.g., 20)",
                 "minimum": 2,
                 "maximum": 200,
                 "default": 20
             },
             "multiplier": {
-                "type": "number",
+                "type": ["number","string"],
                 "description": "Standard deviation multiplier for Bollinger Bands (e.g., 2.0)",
                 "minimum": 0.1,
                 "maximum": 5.0,
                 "default": 2.0
             },
             "sl": {
-                "type": "number",
+                "type": ["number","string"],
                 "description": "Stop loss percentage as decimal (e.g., 0.02 for 2%)",
                 "minimum": 0.001,
                 "maximum": 0.5,
                 "default": 0.02
             },
             "tp": {
-                "type": "number",
+                "type": ["number","string"],
                 "description": "Take profit percentage as decimal (e.g., 0.04 for 4%)",
                 "minimum": 0.001,
                 "maximum": 1.0,
